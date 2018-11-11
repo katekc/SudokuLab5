@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Random;
 
+import pkgEnum.eGameDifficulty;
 import pkgEnum.ePuzzleViolation;
 import pkgHelper.LatinSquare;
 import pkgHelper.PuzzleViolation;
@@ -26,6 +27,8 @@ import pkgHelper.PuzzleViolation;
  */
 public class Sudoku extends LatinSquare implements Serializable {
 
+	private eGameDifficulty eGD;
+	
 	/**
 	 * 
 	 * iSize - the length of the width/height of the Sudoku puzzle.
@@ -46,6 +49,17 @@ public class Sudoku extends LatinSquare implements Serializable {
 	private int iSqrtSize;
 
 	private HashMap<Integer, SudokuCell> cells = new HashMap<Integer, SudokuCell>();
+	
+	// private no-arg constructor for Sudoku
+	private Sudoku() {
+		this.eGD = eGameDifficulty.EASY;
+	}
+	
+	// two-arg constructor for Sudoku
+	public Sudoku(int iSize, int iDifficulty) throws Exception {
+		this(iSize);
+		this.eGD = eGameDifficulty.get(iDifficulty);
+	}
 	
 	/**
 	 * Sudoku - for Lab #2... do the following:
@@ -102,6 +116,42 @@ public class Sudoku extends LatinSquare implements Serializable {
 
 	}
 
+	// LAB #5 METHODS
+	
+	// SetRemainingCells - set lstRemainingValues. Doesn't shuffle
+		private void SetRemainingCells() {
+			for (int iRow = 0; iRow < iSize; iRow++) {
+				for (int iCol = 0; iCol < iSize; iCol++) {
+					SudokuCell c = new SudokuCell(iRow, iCol);
+					c.setlstValidValues(getAllValidCellValues(iCol, iRow));
+					cells.put(c.hashCode(), c);
+				}
+			}
+		}
+	
+	// RemoveCells - removes cells (sets them to zero) until the games difficulty is met
+	private void RemoveCells() {
+		Random rand = new Random();
+		while (!IsDifficultyMet(PossibleValuesMultiplier(cells))) {
+			int iCol = rand.nextInt(iSize);
+			int iRow = rand.nextInt(iSize);
+			this.getPuzzle()[iRow][iCol] = 0;
+		}
+	}
+	
+	// IsDifficultyMet - will return boolean if the given difficulty score meets the game's difficulty
+	private boolean IsDifficultyMet(int iPossibleValues) {
+		return eGD.getiDifficulty() <= iPossibleValues;
+	}
+	
+	// PossibleValuesMultiplier - will return back an integer calculated from the possible remaining values Steps
+	private static int PossibleValuesMultiplier(java.util.HashMap<java.lang.Integer, Sudoku.SudokuCell> map) {
+		int multiplier = 1;
+		for(HashMap.Entry<Integer, Sudoku.SudokuCell> entry : map.entrySet()){
+			multiplier *= entry.getValue().getLstValidValues().size();
+		}
+		return multiplier;
+	}
 	
 	/**
 	 * getiSize - the UI needs to know the size of the puzzle
@@ -146,7 +196,7 @@ public class Sudoku extends LatinSquare implements Serializable {
 			}
 		}
 	}
-
+	
 	private void ShowAvailableValues() {
 		for (int iRow = 0; iRow < iSize; iRow++) {
 			for (int iCol = 0; iCol < iSize; iCol++) {
@@ -571,6 +621,7 @@ public class Sudoku extends LatinSquare implements Serializable {
 			ar[i] = a;
 		}
 	}
+
 	
 		
 	/**
@@ -659,4 +710,5 @@ public class Sudoku extends LatinSquare implements Serializable {
 
 		}
 	}
+	
 }
